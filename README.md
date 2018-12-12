@@ -1,2 +1,2 @@
-# datasciencecoursera
-Data science coursera especialization
+# Getting and cleaning data W4 assignment
+run analysis project
