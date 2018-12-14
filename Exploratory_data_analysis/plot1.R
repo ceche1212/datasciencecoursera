@@ -1,0 +1,10 @@
+library(dplyr)
+library(data.table)
+#evita la notacion cientifica en los resultados scipen = 999 es apagado y prendido es 0
+options(scipen = 999)
+NEI <- readRDS("summarySCC_PM25.rds")
+NEI[,"year_date"]=as.Date(as.character(NEI[,"year"]),"%Y")
+suma=with(NEI,tapply(NEI$Emissions,NEI$year,sum,na.rm=TRUE))
+barplot(suma/1000000,xlab = "Years",ylab = "Emissions (millions of tons)",main = "Total Emissions over the years",col="steelblue")
+dev.copy(png,file="plot1.png")
+dev.off()

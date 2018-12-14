@@ -1,0 +1,12 @@
+library(dplyr)
+library(data.table)
+library(ggplot2)
+#evita la notacion cientifica en los resultados scipen = 999 es apagado y prendido es 0
+options(scipen = 999)
+NEI <- readRDS("summarySCC_PM25.rds")
+NEI[,"year_date"]=as.Date(as.character(NEI[,"year"]),"%Y")
+Baltimore=subset(NEI,fips=="24510")
+plot3<-ggplot(Baltimore,aes(factor(year),Emissions))
+plot3+geom_bar(stat="identity")+facet_grid(.~type)+labs(x="years",y=expression("PM"[2.5]*" Emissions(Tons)"))+theme_bw()
+dev.copy(png,file="plot3.png")
+dev.off()
