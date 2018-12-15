@@ -68,6 +68,7 @@ time series plot of average steps by intervals
 plot2<-ggplot(steps_by_interval,aes(x=intervals,y=steps_by_interval))
 plot2+geom_line(color="red",size=2)+labs(title = "Avg Steps by interval",y="steps")
 ```
+![](plot2.png)<!-- -->
 
 ## 5) Calculate The 5-minute interval that, on average, contains the maximum number of steps
 
@@ -124,7 +125,7 @@ plot3<-ggplot(daily_steps_copia,aes(x=steps))
 plot3+geom_histogram(fill="red",binwidth = 1500)+labs(title = "Daily Steps", x = "Steps", y = "Frequency")
 
 ```
-
+![](plot3.png)<!-- -->
 
 comparisson between with NA and without NA
 
@@ -168,4 +169,4 @@ plot6<-plot6+geom_line(color="red")+labs(title = "Weekend")
 
 grid.arrange(plot5,plot6,nrow=1)
 ```
-
+![](plot4.png)<!-- -->
