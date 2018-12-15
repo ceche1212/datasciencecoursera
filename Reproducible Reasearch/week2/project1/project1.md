@@ -40,7 +40,7 @@ plot1 + geom_histogram(fill="steelblue",binwidth = 1500) + labs(title = "Daily S
 
 ```
 
-[](histogram1.png)<!-- -->
+![](histogram1.png)<!-- -->
 
 ## 3) calculate the mean and the median
 
