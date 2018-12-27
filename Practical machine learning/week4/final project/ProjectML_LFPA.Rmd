@@ -1,0 +1,190 @@
+# Project Practical Machine Learning Project
+Luis Fernando Perez Armas
+
+## Summary
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+The goal of the following project is to predict the manner in which test subjects performed the exercise. This is the "classe" variable in the training set. 
+
+he training data for this project are available here:
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+
+The test data are available here:
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har. If you use the document you create for this class for any purpose please cite them as they have been very generous in allowing their data to be used for this kind of assignment.
+
+## Part 1: Setting up R
+
+```{r}
+library(caret)
+library(dplyr)
+library(Hmisc)
+library(corrplot)
+library(ggplot2)
+library(lattice)
+library(rattle)
+library(data.table)
+library(kernlab)
+```
+
+## Part 2: Getting the data
+
+```{r}
+training_original<-read.csv("training.csv", na.strings = c("NA",""))
+testing_original<-read.csv("testing.csv", na.strings = c("NA",""))
+
+dim(training_original);dim(testing_original)
+
+str(training_original)
+
+```
+
+## Part3: Cleaning data
+
+### removing NA's
+
+there are multuple variables on the data set that are mostly NA values, they are not going to be considered as part of the model and therefore they need to be removed from the dataset
+
+```{r}
+nodata <- colSums(is.na(training_original)) > 0 
+
+training1<-training_original[,!nodata]
+
+dim(training1)
+```
+
+### Looking for variables with no variation
+
+to look for variables with no variation the function nearzerovar will be used
+
+```{r}
+near0var<-nearZeroVar(training1,saveMetrics = TRUE)
+
+training2<-training1[,!near0var$nzv]
+
+near0var
+
+dim(training2)
+```
+
+
+### Removing variables not related to the prediction model
+
+The following variables are not variables that can be used for the prediction model therefore they are going to be removed from the data
+
+X       
+user_name             
+raw_timestamp_part_1  
+raw_timestamp_part_2  
+cvtd_timestamp        
+new_window               
+num_window  
+
+
+```{r}
+
+training_clean<-training2[,-c(1,2,3,4,5,6)]
+
+dim(training_clean)
+```
+
+## Part4: Data Slicing
+
+training_clean data is going to be divided in three, a training set a validation set and a testing this is going to be done with the objective of testing multiple models.
+
+```{r}
+intrain<-createDataPartition(y=training_clean$classe,p=0.7,list = FALSE)
+
+training_set<-training_clean[intrain,]
+
+
+intrain2<-createDataPartition(y=training_set$classe,p=0.7,list = FALSE)
+
+#Real training set
+
+training_training<-training_set[intrain2,]
+
+#testing set to try various models
+
+testing_testing<-training_set[-intrain2,]
+
+#validation set
+
+validation<-training_clean[-intrain,]
+
+dim(training_training);dim(testing_testing);dim(validation)
+```
+
+## Part5: Model with Threes "rpart"
+
+```{r}
+modelfit1<-train(classe ~ ., data=training_training,method = "rpart",preProcess=c("center","scale"))
+
+fancyRpartPlot(modelfit1$finalModel)
+
+predictions_model1<-predict(modelfit1,newdata=testing_testing)
+
+CF1<-confusionMatrix(predictions_model1,testing_testing$classe)
+
+CF1
+
+impmodel1<-varImp(modelfit1)
+
+qplot(classe, predictions_model1, data=testing_testing, colour= classe, geom = c("boxplot", "jitter"), main = "predicted vs. observed in validation data", xlab = "Observed Classe", ylab = "Predicted Classe")
+
+```
+
+As we can see the model have an acurracy of overall 50% which is pretty low for a good prediction model, altouhgt is better than just simple guessing it is still low, therefore we need to try with a different approach since data is quite noisy
+
+## Part6: Model with Random forest
+
+Due to the high computation demand required for the random forest method only three folds of cross validations are to be used and the model will be trained with only 5 threes.
+
+```{r}
+
+tc <- trainControl(method = "cv", 3)
+
+modelfit2<-train(classe ~ ., data=training_training,method = "rf",trControl = tc,allowParallel=TRUE, importance=TRUE, ntree = 5,prox=TRUE)
+
+modelfit2
+
+predictions_model2<-predict(modelfit2,newdata=testing_testing)
+
+CF2<-confusionMatrix(predictions_model2,testing_testing$classe)
+
+CF2
+
+impmodel2<-varImp(modelfit2)
+
+qplot(classe, predictions_model2, data=testing_testing, colour= classe, geom = c("boxplot", "jitter"), main = "predicted vs. observed in validation data", xlab = "Observed Classe", ylab = "Predicted Classe")
+```
+
+as we can see accuracy improved tremendously in comparisson with simple threes going from ~50% to more than 97%, therefore the random forest model is the one to be used.
+
+## Part7: Calculating predictions for the validation and original testing request
+
+it is critical to test outbound errors for this purpose the validation set will be used to test our model
+
+```{r}
+
+predictvalidation<-predict(modelfit2,newdata=validation)
+CF3<-confusionMatrix(predictvalidation,validation$classe)
+
+CF3
+qplot(classe, predictvalidation, data=validation, colour= classe, geom = c("boxplot", "jitter"), main = "predicted vs. observed in validation data", xlab = "Observed Classe", ylab = "Predicted Classe")
+
+predict_testing_original<-predict(modelfit2,testing_original)
+predict_testing_original
+
+table(predict_testing_original)
+```
+
+# Conclusions
+
+The final model to be used is modelfit2 using the random forest algorithm with an overal accuracy of 97%
+
+
