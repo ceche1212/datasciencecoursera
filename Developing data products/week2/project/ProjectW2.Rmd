@@ -1,0 +1,89 @@
+---
+title: "Parcour Banksy in Paris"
+author: "LFPA"
+date: "December 29, 2018"
+output: html_document
+---
+
+# Banksy Art in Paris
+
+The following page is a map guide for the street arts lovers that wish to admire Banksy's work in paris.
+
+```{r,echo=FALSE}
+library(leaflet)
+```
+
+## The address of the 7 murals in the city:
+
+### The vandalized little girl
+
+- 56 boulevard Ney, Porte de la Chapelle (Currently partially covered by blue paint)
+
+![The vandalized little girl](https://www.artistikrezo.com/wp-content/uploads/2018/06/Banksy-Paris-2018-photo-2.jpg)
+
+### Dog amputated by his master
+
+- 2 rue Victor Cousin
+
+![Dog amputated by his master](https://www.artistikrezo.com/wp-content/uploads/2018/06/Banksy-paris-2018-homme-et-chien.jpg)
+
+### Veiled Napoleon
+
+- 41 avenue de Flandre
+
+![Veiled Napoleon](https://www.artistikrezo.com/wp-content/uploads/2018/06/Banksy-paris-2018-cheval.jpg)
+
+### Self-Portrait?
+
+- 36 rue Rambuteau Paris
+
+![Self-Portrait?](https://www.artistikrezo.com/wp-content/uploads/2018/06/Banksy-J24one-1024x982.jpg)
+
+### Rat catapulted by the bottle of champagne
+
+- 27-25 Rue du Mont-Cenis
+
+![Rat catapulted by the bottle of champagne](https://www.artistikrezo.com/wp-content/uploads/2018/06/Banksy-rue-du-Mont-Cenis-18e.png)
+
+### Minnie Mouse
+
+- 25 rue Maître Albert
+
+![Minnie Mouse](https://www.artistikrezo.com/wp-content/uploads/2018/06/Banksy-rat-mai-68.jpg)
+
+### Grieving Bataclan
+
+- 50 Boulevard Voltaire
+
+![Grieving Bataclan](https://www.sortiraparis.com/images/62/79302/367872-banksy-a-paris-les-oeuvres-en-photos-2.jpg)
+
+### Rats admiring the Eiffel Tower
+
+- Pont rouelle viaduc rer
+
+![Rats admiring the Eiffel Tower](https://www.sortiraparis.com/images/62/79299/368001-banksy-a-paris-7.jpg)
+
+
+### The lat & long of each one of the murals:
+
+- (1) lat: 48.898730, long: 2.360280
+- (2) lat: 48.848310, long: 2.342640
+- (3) lat: 48.893160, long: 2.379870
+- (4) lat: 48.861360, long: 2.353240
+- (5) lat: 48.887850, long: 2.341590
+- (6) lat: 48.850380, long: 2.349060
+- (7) lat: 48.863110, long: 2.370870
+- (8) lat: 48.852575, long: 2.281422
+
+```{r}
+
+df = data.frame(lat = c(48.898730, 48.848310, 48.893160, 48.861360, 48.887850, 48.850380, 48.863110,48.852575 ), lng = c(2.360280,2.342640,2.379870,2.353240,2.341590,2.349060,2.370870, 2.281422), popup = c("The vandalized little girl", "Dog amputated by his master", "Veiled Napoleon", "Self-Portrait?", "Rat catapulted by the bottle of champagne
+", "Minnie Mouse", "Grieving Bataclan", "Rats admiring the Eiffel Tower"))
+```
+
+## Map locations of the murals:
+
+```{r}
+df %>% leaflet() %>% addTiles() %>% addMarkers(popup = df$popup)
+```
+
