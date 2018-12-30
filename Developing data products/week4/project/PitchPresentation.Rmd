@@ -1,0 +1,76 @@
+---
+title: "Pitch Presentation project"
+author: "Luis Fernando perez Armas"
+date: "December 30, 2018"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(dplyr)
+library(ggplot2)
+library(caret)
+library(hflights)
+library(corrplot)
+library(lattice)
+library(rattle)
+
+data("hflights")
+tabla<-hflights
+```
+
+## The data set
+
+This presentation intends to describe the app for the houston flights data set
+
+Houston flights data
+
+Description
+
+This dataset contains all flights departing from Houston airports IAH (George Bush Intercontinental) and HOU (Houston Hobby). The data comes from the Research and Innovation Technology Administration at the Bureau of Transporation statistics: http://www.transtats.bts.gov/DatabaseInfo.asp?DB_ID=120&Link=0
+
+
+## Variables
+```{r,echo=FALSE}
+names(tabla)
+```
+- Year, Month, DayofMonth: date of departure
+
+- DayOfWeek: day of week of departure (useful for removing weekend effects)
+
+- DepTime, ArrTime: departure and arrival times (in local time, hhmm)
+
+- UniqueCarrier: unique abbreviation for a carrier
+
+***
+
+- FlightNum: flight number
+- TailNum: airplane tail number
+- ActualElapsedTime: elapsed time of flight, in minutes
+- AirTime: flight time, in minutes
+- ArrDelay, DepDelay: arrival and departure delays, in minutes
+- Origin, Dest origin and destination airport codes
+- Distance: distance of flight, in miles
+- TaxiIn, TaxiOut: taxi in and out times in minutes
+- Cancelled: cancelled indicator: 1 = Yes, 0 = No
+- CancellationCode: reason for cancellation: A = carrier, B = weather, C = national air system, D = security
+- Diverted: diverted indicator: 1 = Yes, 0 = No
+
+## Exploration and cleaning the data set
+```{r}
+head(summary(tabla),10)
+```
+
+***
+```{r}
+head(str(tabla),10)
+```
+
+## The app
+
+The app is designed to compare the delay performance between two selected different airlines via a t.test; it also displays the average delay time of both airlines and a histograms of the delay.
+
+[application link](https://ceche1212.shinyapps.io/project/)
+
+
