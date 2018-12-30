@@ -1,0 +1,32 @@
+---
+title: "Project Week 3"
+author: "LFPA"
+date: "December 30, 2018"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(ISLR)
+library(ggplot2)
+library(plotly)
+data("Wage")
+```
+
+## ISLR-Wages pack
+
+```{r,echo=FALSE,comment=""}
+
+tabla<-Wage
+summary(tabla)
+
+```
+
+## Wage vs Age by type of work
+
+```{r,echo=FALSE}
+p<-qplot(x=tabla$age,y=tabla$wage,data = tabla,colour=tabla$jobclass,xlab = "Age (years)",ylab = "Wage (k USD$)",main = "Wage vs Age")
+
+ggplotly(p)
+```
+
