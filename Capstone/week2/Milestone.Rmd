@@ -1,0 +1,259 @@
+---
+title: "Milestoneproject"
+author: "Luis Fernando Perez Armas"
+date: "January 3, 2019"
+output: html_document
+---
+
+# Milestone Report
+
+The first step in building a predictive model for text is understanding the distribution and relationship between the words, tokens, and phrases in the text. The goal of this task is to understand the basic relationships you observe in the data and prepare to build your first linguistic models.
+
+Tasks to accomplish:
+
+Exploratory analysis:
+
+
+- perform a thorough exploratory analysis of the data, understanding the distribution of words and relationship between the words in the corpora.
+
+- Understand frequencies of words and word pairs - build figures and tables to understand variation in the frequencies of words and word pairs in the data.
+
+## R setup
+
+```{r}
+
+setwd("~/Data Science/Jhon Hopkins/Capstone/Week2")
+library(ggplot2)
+library(quanteda)
+library(data.table)
+library(dplyr)
+```
+
+## File basic information
+
+The following app and report will be built using only english textdata therefore we will select data from twitter blogs and news only in english lenguage
+
+### File size
+
+```{r}
+list.files()
+file.info("en_US.blogs.txt")$size/1024^2
+file.info("en_US.news.txt")$size/1024^2
+file.info("en_US.twitter.txt")$size/1024^2
+```
+
+The average file size is in the order of 200Mb which is certainly not a trivial size
+
+### Read and upload the data
+
+```{r,cache=TRUE}
+blogs<-readLines("en_US.blogs.txt",skipNul = TRUE, warn = TRUE)
+news<-readLines("en_US.news.txt",skipNul = TRUE, warn = TRUE)
+twitter<-readLines("en_US.twitter.txt",skipNul = TRUE,warn = TRUE)
+```
+
+### Number of lines
+
+```{r}
+length(blogs)
+length(news)
+length(twitter)
+```
+
+### Max number of characters per line
+
+```{r}
+max(nchar(blogs))
+max(nchar(news)) 
+max(nchar(twitter))
+```
+
+### Mean number of characters per line
+
+```{r}
+mean(nchar(blogs))
+mean(nchar(news))
+mean(nchar(twitter))
+```
+
+### Summary of nchar
+```{r}
+summary(nchar(blogs))
+summary(nchar(news))
+summary(nchar(twitter))
+```
+
+## Data sample unification
+
+The data is to massive to process it completely specially if we consider constrains related to mobile cellphone memory
+therefore just a sample will be used for the models generation
+
+```{r}
+
+set.seed(3007)
+sam_blogs<-sample(blogs,size = 3000,replace = TRUE)
+sam_news<-sample(news,size = 3000,replace = TRUE)
+sam_twitter<-sample(twitter,size = 3000,replace = TRUE)
+muestra<-c(sam_blogs,sam_news,sam_twitter)
+
+writeLines(muestra,"muestra.txt")
+
+rm(blogs,twitter,news)
+rm(sam_blogs,sam_news,sam_twitter)
+
+muestra<-as.data.frame(muestra)
+names(muestra)<-c("text")
+muestra$text<-as.character(muestra$text)
+nrow(muestra)
+
+```
+
+It is important to verify if there are missing values on the data set, specially after unification
+
+```{r}
+length(which(!complete.cases(muestra)))
+```
+
+We can confirm that the sample has no missing values and therefore we are good to proceed forward
+
+## Unigram Creation
+
+For most of the cleaning and tokenization process we are going to use the quanteda package functions
+
+```{r}
+train.tokens<-tokens(muestra$text,what="word",remove_numbers = TRUE, remove_punct = TRUE,
+                     remove_symbols = TRUE, remove_separators = TRUE,
+                     remove_twitter = TRUE, remove_hyphens = TRUE, remove_url = TRUE)
+
+train.tokens<-tokens_tolower(train.tokens)
+
+train.tokens.dfm <- dfm(train.tokens,tolower = FALSE)
+```
+
+text data is already tokenized what we need to do next is to calculate the frequency of each of the token words
+
+```{r}
+unigram_freq<-colSums(train.tokens.dfm)
+termFreq <- data.frame(unigram=names(unigram_freq), frequency=unigram_freq)
+
+termFreq <-arrange(termFreq,desc(termFreq$frequency))
+top10<-head(termFreq,10)
+top10
+```
+
+Plotting the unigram
+
+```{r}
+
+g1<-ggplot(data = top10,aes(x=reorder(unigram,-frequency),y=top10$frequency))
+g1<-g1 + geom_bar(stat = "identity",fill = "steelblue")+geom_text(data = top10,aes(x=top10$unigram,y=top10$frequency,label = top10$frequency),hjust=0.5,vjust=2, position = "identity",size = 5,color = "White")
+g1<-g1 + ggtitle("Unigram Top 10 Frequently Words") + xlab("Unigrams") + ylab("Frequency")
+g1
+```
+
+## Bigram Creation
+
+To create n>1 grams we will use the quanteda function tokens_ngrams
+
+```{r}
+bigram.token <-tokens_ngrams(train.tokens,n=2)
+bigram.token.dfm <- dfm(bigram.token,tolower = FALSE)
+
+bigram_freq<-colSums(bigram.token.dfm)
+bigram_termfreq<-data.frame(bigram=names(bigram_freq),frequency=bigram_freq)
+
+bigram_termfreq<-arrange(bigram_termfreq,desc(bigram_termfreq$frequency))
+top10bigram<-head(bigram_termfreq,10)
+top10bigram
+```
+
+Plotting the bigram
+
+```{r}
+
+g2<-ggplot(data = top10bigram,aes(x=reorder(bigram,-frequency),y=top10bigram$frequency))
+g2<-g2 + geom_bar(stat = "identity",fill = "seagreen4")+geom_text(data = top10bigram,aes(x=top10bigram$bigram,y=top10bigram$frequency,label = top10bigram$frequency),hjust=0.5,vjust=2, position = "identity",size = 5,color = "White")
+g2<-g2 + ggtitle("Bigram Top 10 Frequently Words") + xlab("Bigrams") + ylab("Frequency")
+g2
+```
+
+## Trigram Creation
+
+```{r}
+trigram.token <-tokens_ngrams(train.tokens,n=3)
+trigram.token.dfm<-dfm(trigram.token,tolower = FALSE)
+
+trigram_freq<-colSums(trigram.token.dfm)
+trigram_termfreq<-data.frame(trigram=names(trigram_freq),frequency=trigram_freq)
+
+trigram_termfreq<-arrange(trigram_termfreq,desc(trigram_termfreq$frequency))
+top10trigram<-head(trigram_termfreq,10)
+```
+
+Plotting trigrams
+
+```{r}
+g3<-ggplot(data = top10trigram,aes(x=reorder(trigram,-frequency),y=top10trigram$frequency))
+g3<-g3 + geom_bar(stat = "identity",fill = "red4")+geom_text(data = top10trigram,aes(x=top10trigram$trigram,y=top10trigram$frequency,label = top10trigram$frequency),hjust=0.5,vjust=2, position = "identity",size = 5,color = "White")
+g3<-g3 + ggtitle("Trigram Top 10 Frequently Words") + xlab("Trigrams") + ylab("Frequency")
+g3
+```
+
+## Quadgrams creation
+
+```{r}
+quadgram.token <-tokens_ngrams(train.tokens,n=4)
+quadgram.token.dfm<-dfm(quadgram.token,tolower=FALSE)
+
+quadgram_freq<-colSums(quadgram.token.dfm)
+quadgram_termfreq<-data.frame(quadgram=names(quadgram_freq),frequency=quadgram_freq)
+quadgram_termfreq<-arrange(quadgram_termfreq,desc(quadgram_termfreq$frequency))
+
+top10quadgram<-head(quadgram_termfreq,10)
+```
+
+Plotting Quadgrams
+
+```{r}
+
+g4<-ggplot(data = top10quadgram,aes(x=reorder(quadgram,-frequency),y=top10quadgram$frequency))
+g4<-g4 + geom_bar(stat = "identity",fill = "purple4")+geom_text(data = top10quadgram,aes(x=top10quadgram$quadgram,y=top10quadgram$frequency,label = top10quadgram$frequency),hjust=0.5,vjust=2, position = "identity",size = 5,color = "White")
+g4<-g4 + ggtitle("Quadgram Top 10 Frequently Words") + xlab("Quadgrams") + ylab("Frequency")
+g4<-g4 + theme(axis.text.x=element_text(angle=45,hjust=1))
+g4
+
+```
+
+## Pentagrams creation
+
+```{r}
+pentagram.token <-tokens_ngrams(train.tokens,n=5)
+pentagram.token.dfm<-dfm(pentagram.token,tolower = FALSE)
+
+pentagram_freq<-colSums(pentagram.token.dfm)
+pentagram_termfreq<-data.frame(pentagram=names(pentagram_freq),frequency=pentagram_freq)
+pentagram_termfreq<-arrange(pentagram_termfreq,desc(pentagram_termfreq$frequency))
+
+top10pentagram<-head(pentagram_termfreq,10)
+top10pentagram
+```
+
+Plotting pentagrams
+
+```{r}
+
+g5<-ggplot(data = top10pentagram,aes(x=reorder(pentagram,-frequency),y=top10pentagram$frequency))
+g5<-g5 + geom_bar(stat = "identity",fill = "darkorange4")+geom_text(data = top10pentagram,aes(x=top10pentagram$pentagram,y=top10pentagram$frequency,label = top10pentagram$frequency),hjust=0.5,vjust=2, position = "identity",size = 5,color = "White")
+g5<-g5 + ggtitle("Pentagram Top 10 Frequently Words") + xlab("Pentagrams") + ylab("Frequency")
+g5<-g5 + theme(axis.text.x=element_text(angle=45,hjust=1))
+g5
+
+```
+
+
+
+
+
+
+
+
